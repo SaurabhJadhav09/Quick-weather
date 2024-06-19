@@ -11,8 +11,8 @@ Quick Weather is a simple Flutter app that displays the current weather informat
 
 ## Screenshots
 
-![Screenshot 1](screenshots/screenshot1.png)
-![Screenshot 2](screenshots/screenshot2.png)
+![Screenshot 1](screenshots/screenshot 1.png)
+![Screenshot 2](screenshots/screenshot 2.png)
 
 
 ## Getting Started
