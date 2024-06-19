@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
-// import 'package:weatherapp/models/weather_model.dart';
-// import 'package:weatherapp/service/weather_service.dart';
-
 import '../models/weather_model.dart';
 import '../service/weather_service.dart';
 
@@ -14,35 +12,36 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-
-  //api key
-  final _weatherService = WeatherService('987d67f581f76aea6addd1d669b86fea');
+  final _weatherService = WeatherService('a2983714aa643d8d4fb87cafbe605b78');
   Weather? _weather;
 
-  //fetch weather
-  _fetchWeather() async{
-    //get current city
-    String cityName = await _weatherService.getCurrentCity();
+  _fetchWeather() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
+        print('Location permissions are denied');
+        return;
+      }
+    }
 
-    //get weather for city
-    try  {
+    String cityName = await _weatherService.getCurrentCity();
+    print('City: $cityName');
+
+    try {
       final weather = await _weatherService.getWeather(cityName);
       setState(() {
         _weather = weather;
       });
-    }
-
-    //any errors
-    catch (e){
+    } catch (e) {
       print(e);
     }
   }
 
-  //weather animations
-  String getWeatherAnimation(String? mainConditon){
-    if (mainConditon== null) return 'assets/sunny.json'; //default to sunny 
+  String getWeatherAnimation(String? mainCondition) {
+    if (mainCondition == null) return 'assets/sunny.json';
 
-    switch (mainConditon.toLowerCase()){
+    switch (mainCondition.toLowerCase()) {
       case 'clouds':
       case 'mist':
       case 'smoke':
@@ -57,66 +56,72 @@ class _WeatherPageState extends State<WeatherPage> {
       case 'thunderstorm':
         return 'assets/thunder.json';
       case 'clear':
-        return  'assets/sunny.json';
+        return 'assets/sunny.json';
       default:
         return 'assets/sunny.json';
     }
   }
 
-  //init state
   @override
   void initState() {
     super.initState();
-
-    //fetch weather on startup
     _fetchWeather();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[800],
+      backgroundColor: Colors.grey[900],
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // location icon and city name
             Column(
               children: [
+                const SizedBox(height: 70), // Adjust this value to move the whole section down
                 const Icon(
                   Icons.location_on,
-                  color: Colors.white,
-                  size: 22.0, // Adjust size as needed
+                  color: Colors.grey,
+                  size: 40.0, // Adjust size as needed
                 ),
-            Text(_weather?.cityName ?? "Loading city..",
-            style: const TextStyle(
-              color: Colors.white
-            ),
-            ),
+                const SizedBox(height: 5), // Adjust this value for space between icon and text
+                Text(
+                  _weather?.cityName ?? "Loading city...",
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 24.0, // Change text size here
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-
-            //animation
-            Lottie.asset(getWeatherAnimation(_weather?.mainConditon)),
-
-            //temperature
-            Text('${_weather?.temperature.round()}℃',
-            style: const TextStyle(
-              color: Colors.white,
+            Expanded(
+              child: Center(
+                child: Lottie.asset(getWeatherAnimation(_weather?.mainConditon)),
+              ),
             ),
-            ),
-
-            //weather conditon
-            Text(_weather?.mainConditon ?? "",
-            style: const TextStyle(
-              color: Colors.white,
-            ),
+            Column(
+              children: [
+                Text(
+                  '${_weather?.temperature.round()}℃',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 50.0, // Adjust text size if needed
+                  ),
+                ),
+                Text(
+                  _weather?.mainConditon ?? "",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24.0, // Adjust text size if needed
+                  ),
+                ),
+                const SizedBox(height: 70), // Adjust this value to move the whole section up/down
+              ],
             ),
           ],
         ),
       ),
-
     );
   }
 }
